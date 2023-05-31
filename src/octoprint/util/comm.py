@@ -783,6 +783,8 @@ class MachineCom:
         self.pause_fanspeed = None
         self.cancel_fanspeed = None
 
+        self.absolute_positioning = True # default in Marlin
+
         self._record_pause_data = False
         self._record_cancel_data = False
 
@@ -1322,6 +1324,7 @@ class MachineCom:
                 "last_position": self.last_position,
                 "last_temperature": self.last_temperature.as_script_dict(),
                 "last_fanspeed": self.last_fanspeed,
+                "absolute_positioning": self.absolute_positioning,
             }
         )
 
@@ -4448,9 +4451,14 @@ class MachineCom:
                     # no command, next entry
                     return False
 
-                if gcode and gcode in gcodeToEvent:
-                    # if this is a gcode bound to an event, trigger that now
-                    eventManager().fire(gcodeToEvent[gcode])
+                if gcode
+                    if gcode in gcodeToEvent:
+                        # if this is a gcode bound to an event, trigger that now
+                        eventManager().fire(gcodeToEvent[gcode])
+                    if gcode == "G90":
+                        self.absolute_positioning = True
+                    if gcode == "G91":
+                        self.absolute_positioning = False
 
                 # process @ commands
                 if gcode is None and cmd.startswith("@"):
